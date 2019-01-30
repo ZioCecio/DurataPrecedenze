@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Precendenze</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+</head>
+<body>
+    <div class="pure-g">
+        <div class="pure-u-1-1">
+            <div class="container">
+                <form class="pure-form add-processo" id="form-add-processo">
+                    <input id="nomeProcesso" type="text" placeholder="Nome" />
+                    <input id="durataProcesso" type="number" placeholder="Durata" min="0" />
+                    <button type="submit" class="pure-button pure-button-primary"> AGGIUNGI </button>
+                </form>
+                <form class="pure-form add-processo" id="form-add-precedenze">
+                    <p class="testo-precedenze">Il processo</p> 
+                    <select id="precedente" class="select-processi"></select> 
+                    <p class="testo-precedenze">precede il processo</p> 
+                    <select id="successivo" class="select-processi"></select>
+                    <button type="submit" class="pure-button pure-button-primary"> CREA </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="pure-u-1-1">
+            <div class="container">
+                <table class="pure-table" id="mostra-processi">
+                    <thead>
+                        <tr>
+                            <th>NOME</th>
+                            <th>DURATA</th>
+                            <th>EARLYSTART</th>
+                            <th>EARLYFINISH</th>
+                            <th>LATESTART</th>
+                            <th>LATEFINISH</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="inserisci-processi"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="scrivi-risultati"></div>
+
+    <script type="text/babel" src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+div.container {
+    width: 100%;
+    text-align: center;
+    align-content: center;
+}
+
+form.add-processo {
+    margin-top: 3%;
+}
+
+table.show-processi {
+    margin-top: 3%;
+    width: 50%;
+    text-align: center;
+}
+
+tr.processo:hover {
+    background-color: rgb(243, 243, 243);
+    cursor: pointer;
+}
+
+p.testo-precedenze {
+    display: inline-block;
+}
+
+select.select-processi  {
+    width: 5%;
+}
+
+th, td {
+    text-align: center;
+}
+
+table#mostra-processi {
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 2%;
+}
+
+td.icona-cestino:hover {
+    color: red;
+}
