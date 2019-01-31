@@ -182,6 +182,23 @@ class Calcolatore {
      * @param {string} name - Nome del processo da eliminare.
      */
     eliminaProcessoByName(name) {
+        //Per ogni processo controlla se tra i suoi successivi è presente il processo da eliminare.
+        this.processi.forEach(processo => {
+            processo.successivi.forEach((p, index) => {
+                if(p.nome.localeCompare(name) === 0)
+                    processo.successivi.splice(index, 1);
+            });
+        });
+
+        //Per ogni processo controlla se tra i suoi precedenti è presente il processo da eliminare.
+        this.processi.forEach(processo => {
+            processo.precedenti.forEach((p, index) => {
+                if(p.nome.localeCompare(name) === 0)
+                    processo.precedenti.splice(index, 1);
+            });
+        });
+        
+        //Scorre la lista di processi ed elimina quello specificato.
         this.processi.forEach((p, index) => {
             if(p.nome.localeCompare(name) === 0)
                 this.processi.splice(index, 1); //Eliminazione processo dalla lista.
@@ -241,6 +258,7 @@ const dateToString = date => date.getDate() + "/" + date.getMonth() + "/" + date
 const calcolatore = new Calcolatore(new Date());    //Calcolatore che rappresenta il cervello dell'applicazione.
 
 const formAggiungiProcesso = document.getElementById("form-add-processo");  //Puntatore al form della pagina html nel quale sono inseriti i dati relativi ai processi da inserire.
+const formAggiungiPrecedenza = document.getElementById("form-add-precedenze"); //Puntatore al form della pagina html nel quale sono inseriti i dati relativi alle precedenze da inserire.
 
 /**
  * Aggiorna la tabella per mostrare a schermo i processi al momento inseriti.
@@ -292,12 +310,46 @@ const eliminaProcesso = processo => {
         return;
     
     calcolatore.eliminaProcessoByName(processo.nome);
+    eliminaOptions(processo.nome);
+
+    calcolatore.calcola();
     aggiornaTabella();
+}
+
+/**
+ * Aggiunge le opzioni alle select della pagina per creare le precedenze.
+ * @param {string} nomeProcesso - Nome del processo da aggiungere nelle opzioni dei select.
+ */
+const aggiungiOptions = nomeProcesso => {
+    let precedente = document.getElementById("precedente");
+    let successivo = document.getElementById("successivo");
+
+    let option1 = document.createElement("option");
+    let option2 = document.createElement("option");
+
+    option1.classList.add(nomeProcesso);
+    option2.classList.add(nomeProcesso);
+
+    option1.innerHTML = nomeProcesso;
+    option2.innerHTML = nomeProcesso;
+
+    precedente.appendChild(option1);
+    successivo.appendChild(option2);
+}
+
+/**
+ * Elimina le opzioni alle select della pagina per creare le precedenze.
+ * @param {string} nomeProcesso - Nome del processo da eliminare dalle opzioni dei select.
+ */
+const eliminaOptions = nomeProcesso => {
+    let options = document.getElementsByClassName(nomeProcesso);
+    for(let i = options.length - 1; i >= 0; i--)
+        options[i].parentNode.removeChild(options[i]);
 }
 
 //Viene aggiunta al form la funzione che deve eseguire quando i suoi dati vengono mandati.
 formAggiungiProcesso.onsubmit = event => {
-    event.preventDefault(); //Impedisce eseguire POST verso l'esterno.
+    event.preventDefault(); //Impedisce di eseguire POST verso l'esterno.
 
     let nome = event.target.nomeProcesso.value;
     let durata = parseInt(event.target.durataProcesso.value);
@@ -311,11 +363,43 @@ formAggiungiProcesso.onsubmit = event => {
         return;
     }
 
+    //Se non è specificata la durata del processo non lo si inserisce.
+    if(isNaN(durata)) {
+        alert("Specificare la durata del processo!");
+        return;
+    }
+
+    //Se non è specificato il nome del processo non lo si inserisce.
+    if(nome.localeCompare("") === 0) {
+        alert("Specificare il nome del processo!");
+        return;
+    }
+
     calcolatore.addProcesso(new Processo(nome, durata));
+    aggiungiOptions(nome);
 
     calcolatore.calcola();  //Ogni volta che un processo viene aggiunto il calcolatore ri-esegue tutti i calcoli.
-
     aggiornaTabella();  //Ogni volta che un processo viene aggiunto viene ri-disegnata la tabella per mostrare i processi.
+}
+
+formAggiungiPrecedenza.onsubmit = event => {
+    event.preventDefault();
+
+    let precedente = event.target.precedente.value;
+    let successivo = event.target.successivo.value;
+
+    if(precedente.localeCompare(successivo) === 0) {
+        alert("Un processo non può precedere se stesso!");
+        return;
+    }
+
+    precedente = calcolatore.getProcessoByName(precedente);
+    successivo = calcolatore.getProcessoByName(successivo);
+
+    precedente.setSuccessivo(successivo);
+
+    calcolatore.calcola();
+    aggiornaTabella();
 }
 
 /*
