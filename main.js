@@ -347,6 +347,40 @@ const eliminaOptions = nomeProcesso => {
         options[i].parentNode.removeChild(options[i]);
 }
 
+/**
+ * Controlla che le precedenze siano corrette per evitare loop durante il calcolo delle date.
+ * @param {Object} precedente - Processo precedente.
+ * @param {Object} successivo - Processo successivo.
+ * @returns {boolean} - True se la precedenza è valida altrimenti false.
+ */
+const controllaPrecedenze = (precedente, successivo) => {
+    //Se il precedente ha tra i precedenti il suo successivo, la precedenza è sbagliata.
+    if(precedente.precedenti.includes(successivo))
+        return false;
+    
+    //Se il successivo ha tra i successivi il suo precedente, la precedenza è sbagliata.
+    if(successivo.successivi.includes(precedente))
+        return false;
+
+    let ret = true;
+
+    //Esegue lo stesso controllo per ogni processo successivo a quello dato.
+    if(successivo.successivi !== []) {
+        successivo.successivi.forEach(p => {
+            ret = controllaPrecedenze(precedente, p);
+        });
+    }
+
+    //Esegue lo stesso controllo per ogni processo precedente a quello dato.
+    if(precedente.precedenti !== []) {
+        precedente.precedenti.forEach(p => {
+            ret = controllaPrecedenze(p, successivo);
+        });
+    }
+
+    return ret;
+}
+
 //Viene aggiunta al form la funzione che deve eseguire quando i suoi dati vengono mandati.
 formAggiungiProcesso.onsubmit = event => {
     event.preventDefault(); //Impedisce di eseguire POST verso l'esterno.
@@ -395,6 +429,16 @@ formAggiungiPrecedenza.onsubmit = event => {
 
     precedente = calcolatore.getProcessoByName(precedente);
     successivo = calcolatore.getProcessoByName(successivo);
+
+    if(precedente.successivi.includes(successivo)) {
+        alert("Precedenza già aggiunta!");
+        return;
+    }
+
+    if(!controllaPrecedenze(precedente, successivo)) {
+        alert("Precedenza errata!");
+        return;
+    }
 
     precedente.setSuccessivo(successivo);
 
