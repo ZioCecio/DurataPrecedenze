@@ -38,6 +38,12 @@ table#mostra-processi {
     margin-top: 2%;
 }
 
+table.scrivi-risultati {
+    margin-left: auto;
+    margin-right: auto;
+    width: 20%;
+}
+
 td.icona-cestino:hover {
     color: red;
 }

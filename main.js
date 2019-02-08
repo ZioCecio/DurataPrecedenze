@@ -273,6 +273,8 @@ const aggiornaTabella = () => {
 
         tr.classList.add("processo");
 
+        tr.onclick = () => visualizzaPrecedenze(p);
+
         Object.keys(p).forEach(key => {
             let td = document.createElement("td");
 
@@ -345,6 +347,37 @@ const eliminaOptions = nomeProcesso => {
     let options = document.getElementsByClassName(nomeProcesso);
     for(let i = options.length - 1; i >= 0; i--)
         options[i].parentNode.removeChild(options[i]);
+}
+
+const visualizzaPrecedenze = processo => {
+    const scrivi = document.getElementById("scrivi-risultati");
+    const table = document.createElement("table");
+
+    table.classList.add("pure-table");
+    table.classList.add("scrivi-risultati");
+
+    scrivi.innerHTML = "";
+
+    const titolo = document.createElement("h1");
+    titolo.innerHTML = "Successivi di " + processo.nome;
+
+    scrivi.appendChild(titolo);
+    scrivi.appendChild(table);
+
+    processo.successivi.forEach(p => {
+        let x = document.createElement("tr");
+
+        let y = document.createElement("td");
+        let z = document.createElement("td");
+
+        y.innerHTML = p.nome;
+        z.innerHTML = "ELIMINA";
+
+        x.appendChild(y);
+        x.appendChild(z);
+
+        table.appendChild(x);
+    });
 }
 
 /**
