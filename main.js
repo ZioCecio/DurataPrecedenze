@@ -128,7 +128,7 @@ const calcolaRicorsivoLate = processo => {
         else {
             let x = new Date(processo.lateStart);
 
-            if(x > p.lateFinish) {
+            if(x < p.lateFinish) {
                 p.lateFinish = x;
                 p.calcolaLateStart();
             }
@@ -253,12 +253,14 @@ class Calcolatore {
  * Trasforma una data in una stringa (mostrando solo anno, mese e giorno nel formato DD/MM/YYYY).
  * @param {Object} date - Data di cui bisogna fare il parsing.
  */
-const dateToString = date => date.getDate() + "/" + date.getMonth() + "/" + date.getFullYear();
+const dateToString = date => date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
 
 const calcolatore = new Calcolatore(new Date());    //Calcolatore che rappresenta il cervello dell'applicazione.
 
 const formAggiungiProcesso = document.getElementById("form-add-processo");  //Puntatore al form della pagina html nel quale sono inseriti i dati relativi ai processi da inserire.
 const formAggiungiPrecedenza = document.getElementById("form-add-precedenze"); //Puntatore al form della pagina html nel quale sono inseriti i dati relativi alle precedenze da inserire.
+
+let processoSelezionato = null //Tiene traccia dell'ultimo processo che è stato cliccato sulla tabella.
 
 /**
  * Aggiorna la tabella per mostrare a schermo i processi al momento inseriti.
@@ -316,6 +318,11 @@ const eliminaProcesso = processo => {
 
     calcolatore.calcola();
     aggiornaTabella();
+
+    if(processo == processoSelezionato)
+        processoSelezionato = null;
+
+    visualizzaPrecedenze(processoSelezionato);
 }
 
 /**
@@ -349,14 +356,40 @@ const eliminaOptions = nomeProcesso => {
         options[i].parentNode.removeChild(options[i]);
 }
 
+/**
+ * Elimina una precedenza.
+ * @param {Object} precedente - Processo precedente.
+ * @param {Object} successivo - Processo successivo.
+ */
+const eliminaPrecedenza = (precedente, successivo) => {
+    let indiceSuccessivo = precedente.successivi.indexOf(successivo);
+    let indicePrecedente = successivo.precedenti.indexOf(precedente);
+
+    precedente.successivi.splice(indiceSuccessivo, 1);
+    successivo.precedenti.splice(indicePrecedente, 1);
+
+    calcolatore.calcola();
+    aggiornaTabella();
+    visualizzaPrecedenze(processoSelezionato);
+}
+
+/**
+ * Visualizza e aggiorna la tabella che mostra tutti i processi successivi di un processo.
+ * @param {Object} processo - Processo del quale sono da mostrare i successivi.
+ */
 const visualizzaPrecedenze = processo => {
     const scrivi = document.getElementById("scrivi-risultati");
     const table = document.createElement("table");
 
+    scrivi.innerHTML = "";
+
+    if(!calcolatore.processi.includes(processo))
+        return;
+
+    processoSelezionato = processo;
+
     table.classList.add("pure-table");
     table.classList.add("scrivi-risultati");
-
-    scrivi.innerHTML = "";
 
     const titolo = document.createElement("h1");
     titolo.innerHTML = "Successivi di " + processo.nome;
@@ -366,12 +399,19 @@ const visualizzaPrecedenze = processo => {
 
     processo.successivi.forEach(p => {
         let x = document.createElement("tr");
+        x.classList.add("processo");
 
         let y = document.createElement("td");
         let z = document.createElement("td");
 
+        let icon = document.createElement("i");
+        icon.classList.add("far");
+        icon.classList.add("fa-trash-alt");
+
         y.innerHTML = p.nome;
-        z.innerHTML = "ELIMINA";
+        z.appendChild(icon);
+        z.classList.add("icona-cestino");
+        z.onclick = () => eliminaPrecedenza(processo, p);
 
         x.appendChild(y);
         x.appendChild(z);
@@ -449,12 +489,14 @@ formAggiungiProcesso.onsubmit = event => {
     aggiornaTabella();  //Ogni volta che un processo viene aggiunto viene ri-disegnata la tabella per mostrare i processi.
 }
 
+//Viene aggiunta al form la funzione che deve eseguire quando i suoi dati vengono mandati.
 formAggiungiPrecedenza.onsubmit = event => {
-    event.preventDefault();
+    event.preventDefault(); //Impedisce di eseguire POST verso l'esterno.
 
-    let precedente = event.target.precedente.value;
-    let successivo = event.target.successivo.value;
+    let precedente = event.target.precedente.value; //Salva il nome del processo precedente.
+    let successivo = event.target.successivo.value; //Salva il nome del processo successivo.
 
+    //Se precedente e successivo sono uguali non fa aggiungere la precedenza.
     if(precedente.localeCompare(successivo) === 0) {
         alert("Un processo non può precedere se stesso!");
         return;
@@ -463,183 +505,21 @@ formAggiungiPrecedenza.onsubmit = event => {
     precedente = calcolatore.getProcessoByName(precedente);
     successivo = calcolatore.getProcessoByName(successivo);
 
+    //Se la precedenza è già stata aggiunta evita che venga aggiunta per la seconda volta.
     if(precedente.successivi.includes(successivo)) {
         alert("Precedenza già aggiunta!");
         return;
     }
 
+    //Se le precedenze non sono valide non le aggiunge.
     if(!controllaPrecedenze(precedente, successivo)) {
         alert("Precedenza errata!");
         return;
     }
 
-    precedente.setSuccessivo(successivo);
+    precedente.setSuccessivo(successivo);   //Aggiunge la precedenza.
 
-    calcolatore.calcola();
-    aggiornaTabella();
+    calcolatore.calcola();  //Ricalcola le date.
+    aggiornaTabella();  //Aggiorna la tabella da mostrare all'utente.
+    visualizzaPrecedenze(processoSelezionato); //Aggiorna la tabella che mostra le precedenze.
 }
-
-/*
-
-const calc = new Calcolatore(new Date());
-const formAggiungiProcesso = document.getElementById("form-add-processo");
-const formAggiungiPrecedenza = document.getElementById("form-add-precedenze");
-const tbody = document.getElementById("tabella-processi");
-const containerTabella = document.getElementById("container-tabella-processi");
-
-const selectPrecedente = document.getElementById("precedente");
-const selectSuccessivo = document.getElementById("successivo");
-
-const scriviRisulati = document.getElementById("scrivi-risultati");
-
-let scriviSulDiv = () => {
-    calc.calcola();
-
-    scriviRisulati.innerHTML = "";
-
-    let titoloEarly = document.createElement("h1");
-    titoloEarly.innerHTML = "EARLY";
-
-    let titoloLate = document.createElement("h1");
-    titoloLate.innerHTML = "LATE";
-
-    scriviRisulati.appendChild(titoloEarly);
-    calc.processi.forEach(p => {
-        let x = document.createElement("p");
-        x.innerHTML = p.toStringEarly();
-        scriviRisulati.appendChild(x);
-    });
-
-    scriviRisulati.appendChild(titoloLate);
-    calc.processi.forEach(p => {
-        let x = document.createElement("p");
-        x.innerHTML = p.toStringLate();
-        scriviRisulati.appendChild(x);
-    });
-}
-
-let addPrecedenze = processo => {
-    let tbodyPrecedenze = document.getElementById("tabella-precedenze");
-    tbodyPrecedenze.innerHTML = "";
-
-    processo.successivi.forEach(p => {
-        let tr = document.createElement("tr");
-        tr.classList.add("processo");
-
-        let row1 = document.createElement("td");
-        let row2 = document.createElement("td");
-
-        row1.innerHTML = processo.nome;
-        row2.innerHTML = p.nome;
-
-        tr.appendChild(row1);
-        tr.appendChild(row2);
-
-        tbodyPrecedenze.appendChild(tr);
-
-        scriviSulDiv();
-    });
-}
-
-let creaTabellaProcessi = processo => {
-    let tr = document.createElement("tr");
-    tr.classList.add("processo");
-    tr.onclick = () => addPrecedenze(processo);
-
-    let row1 = document.createElement("td");
-    let row2 = document.createElement("td");
-
-    row1.innerHTML = processo.nome;
-    row2.innerHTML = processo.durata;
-
-    tr.appendChild(row1);
-    tr.appendChild(row2);
-
-    tbody.appendChild(tr);
-
-    scriviSulDiv();
-}
-
-formAggiungiProcesso.onsubmit = event => {
-    event.preventDefault();
-    let nome = document.getElementById('nome-processo').value;
-    let durata = document.getElementById('durata-processo').value;
-
-    let processo = new Processo(nome, durata);
-    calc.addProcesso(processo);
-
-    let op1 = document.createElement("option");
-    let op2 = document.createElement("option");
-        
-    op1.innerHTML = processo.nome;
-    op2.innerHTML = processo.nome;
-
-    selectPrecedente.appendChild(op1);
-    selectSuccessivo.appendChild(op2);
-
-    creaTabellaProcessi(processo);
-}
-
-formAggiungiPrecedenza.onsubmit = event => {
-    event.preventDefault();
-
-    let precedente = calc.getProcessoByName(document.getElementById("precedente").value);
-    let successivo = calc.getProcessoByName(document.getElementById("successivo").value);
-
-    precedente.setSuccessivo(successivo);
-
-    console.log("ADD");
-
-    calc.calcola();
-
-    scriviSulDiv();
-}
-
-*/
-
-/*
-const calc = new Calcolatore(new Date());
-let a = new Processo("A", 2);
-let b = new Processo("B", 1);
-let c = new Processo("C", 6);
-let d = new Processo("D", 3);
-let e = new Processo("E", 3);
-let f = new Processo("F", 5);
-a.setSuccessivo(d);
-b.setSuccessivo(d);
-b.setSuccessivo(e);
-c.setSuccessivo(e);
-d.setSuccessivo(f);
-e.setSuccessivo(f);
-calc.addProcesso(a);
-calc.addProcesso(b);
-calc.addProcesso(c);
-calc.addProcesso(d);
-calc.addProcesso(e);
-calc.addProcesso(f);
-calc.calcola();
-calc.processi.forEach(p => {
-    console.log(p.toStringEarly());
-});
-calc.processi.forEach(p => {
-    console.log(p.toStringLate());
-});
-*/
-
-/*
-const calco = new Calcolatore(new Date());
-let a = new Processo("A", 10);
-let b = new Processo("B", 5);
-let c = new Processo("C", 3);
-b.setSuccessivo(c);
-calco.addProcesso(a);
-calco.addProcesso(b);
-calco.addProcesso(c);
-calco.calcola();
-calco.processi.forEach(p => {
-    console.log(p.toStringEarly());
-});
-calco.processi.forEach(p => {
-    console.log(p.toStringLate());
-});
-*/
