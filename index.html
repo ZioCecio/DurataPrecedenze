@@ -17,7 +17,10 @@
             <div class="container">
                 <form class="pure-form add-processo" id="form-add-processo">
                     <input id="nomeProcesso" type="text" placeholder="Nome" />
-                    <input id="durataProcesso" type="number" placeholder="Durata" min="0" />
+                    <!-- <input id="durataProcesso" type="number" placeholder="Durata" min="0" /> -->
+                    <input id="durataOttimistica" type="number" placeholder="Ottimismo" min="0" />
+                    <input id="durataProbabile" type="number" placeholder="Probabile" min="0" />
+                    <input id="durataPessimistica" type="number" placeholder="Pessimismo" min="0" />
                     <button type="submit" class="pure-button pure-button-primary"> AGGIUNGI </button>
                 </form>
                 <form class="pure-form add-processo" id="form-add-precedenze">
@@ -36,7 +39,8 @@
                     <thead>
                         <tr>
                             <th>NOME</th>
-                            <th>DURATA</th>
+                            <th>EXPECTED DURATA</th>
+                            <th>SD</th>
                             <th>EARLYSTART</th>
                             <th>EARLYFINISH</th>
                             <th>LATESTART</th>

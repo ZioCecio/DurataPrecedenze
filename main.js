@@ -4,10 +4,12 @@ class Processo {
      * Crea il processo.
      * @param {string} nome - Nome del processo (univoco).
      * @param {number} durata - Durata del processo (da esprimere in giorni).
+     * @param {number} sd - Standard deviation del processo.
      */
-    constructor(nome, durata) {
+    constructor(nome, durata, sd) {
         this.nome = nome;
         this.durata = durata;
+        this.sd = sd;
 
         this.precedenti = [];
         this.successivi = [];
@@ -98,8 +100,8 @@ const calcolaRicorsivoEarly = processo => {
             p.calcolaEarlyFinish();
         }
         else {
-            let x = new Date();
-            x.setDate(processo.earlyStart.getDate() + parseInt(processo.durata));
+            let x = new Date(processo.earlyFinish);
+            //x.setDate(processo.earlyStart.getDate() + parseInt(processo.durata));
 
             if(x > p.earlyStart) {
                 p.earlyStart = x;
@@ -459,10 +461,15 @@ formAggiungiProcesso.onsubmit = event => {
     event.preventDefault(); //Impedisce di eseguire POST verso l'esterno.
 
     let nome = event.target.nomeProcesso.value;
-    let durata = parseInt(event.target.durataProcesso.value);
+    //let durata = parseInt(event.target.durataProcesso.value);
+    let durata = parseInt((parseInt(event.target.durataOttimistica.value) + parseInt(event.target.durataPessimistica.value) + (parseInt(event.target.durataProbabile.value) * 4)) / 6);
+    let sd = parseInt((parseInt(event.target.durataPessimistica.value) - parseInt(event.target.durataOttimistica.value)) / 6);
 
     event.target.nomeProcesso.value = "";
-    event.target.durataProcesso.value = "";
+    //event.target.durataProcesso.value = "";
+    event.target.durataOttimistica.value = "";
+    event.target.durataPessimistica.value = "";
+    event.target.durataProbabile.value = "";
 
     //Se il processo è già presente nel calcolatore non lo si inserisce.
     if(calcolatore.getProcessoByName(nome) != null) {
@@ -482,7 +489,7 @@ formAggiungiProcesso.onsubmit = event => {
         return;
     }
 
-    calcolatore.addProcesso(new Processo(nome, durata));
+    calcolatore.addProcesso(new Processo(nome, durata, sd));
     aggiungiOptions(nome);
 
     calcolatore.calcola();  //Ogni volta che un processo viene aggiunto il calcolatore ri-esegue tutti i calcoli.
