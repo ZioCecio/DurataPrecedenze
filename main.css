@@ -47,3 +47,7 @@ table.scrivi-risultati {
 td.icona-cestino:hover {
     color: red;
 }
+
+h1.bella {
+    margin-top: 5%;
+}

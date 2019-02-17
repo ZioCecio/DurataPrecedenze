@@ -305,6 +305,8 @@ const aggiornaTabella = () => {
 
         tbody.appendChild(tr);
     });
+
+    scriviTempi();
 }
 
 /**
@@ -454,6 +456,18 @@ const controllaPrecedenze = (precedente, successivo) => {
     }
 
     return ret;
+}
+
+const scriviTempi = () => {
+    const scrivi = document.getElementById("scrivi-tempi");
+    scrivi.innerHTML = "";
+
+    const h1 = document.createElement("h1");
+    h1.innerHTML = "Durata del progetto (in giorni): " + Math.round(Math.abs((calcolatore.dataFine.getTime() - calcolatore.dataInizio.getTime()) / (24 * 60 * 60 * 1000)));
+
+    h1.classList.add("bella");
+
+    scrivi.appendChild(h1);
 }
 
 //Viene aggiunta al form la funzione che deve eseguire quando i suoi dati vengono mandati.
